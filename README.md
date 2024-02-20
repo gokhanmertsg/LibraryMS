@@ -35,13 +35,13 @@ The Library Management System is a FastAPI-based project that provides CRUD oper
     cd library-management-system
     poetry install
 3. Configuration
-   Create a '.env' file in the project root and configure the following variables:
+   - Create a '.env' file in the project root and configure the following variables:
    ```
    SQLALCHEMY_DATABASE_URL=your_database_url
    SECRET_KEY=your_secret_key
    ALGORITHM=HS256   
 4. Running PostgreSQL on Docker
-   Firstly, configure connection information from docker.compose.yml. Then,
+   - Firstly, configure connection information from docker.compose.yml. Then,
    ```bash
    apt install docker.io
    docker-compose up --build
