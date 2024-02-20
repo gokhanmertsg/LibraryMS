@@ -76,7 +76,7 @@ async def create_librarian(create_librarian_request: LibrarianRequest, db:   db_
 
 @router.post("/student")
 async def create_student(create_student_request: StudentRequest, db:   db_dependency):
-    student_id = auth_service.create_student(create_student_request['name'], create_student_request['department'])
+    student_id = auth_service.create_student(create_student_request.name, create_student_request.department)
     return {"student_id": student_id}
 
 @router.post("/token")
