@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "library management system"
+version = "0.1.0"
+description = ""
+authors = ["goko"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.0"
+sqlalchemy = "^1.4.0"
+passlib = "^1.7.4"
+pydantic = "^2.6.1"
+pytest = "^7.4.4"
+jose = "^3.3.0"
+dotenv = "^0.19.0"
+starlette = "^0.14.2"
+uvicorn = "^0.15.0"
+bcrypt = "^4.1.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
