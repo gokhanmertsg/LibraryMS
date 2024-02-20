@@ -42,7 +42,7 @@ class Book(Base):
 class BookType(Base):
     """
     type_id: Integer, PK, auto_generated
-    type_Name = String
+    type_name: String
     """
     __tablename__ = 'book_types'
     type_id = Column(Integer, primary_key=True)

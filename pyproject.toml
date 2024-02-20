@@ -5,17 +5,18 @@ description = ""
 authors = ["goko"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-fastapi = "^0.68.0"
-sqlalchemy = "^1.4.0"
+python = "^3.10.12"
+fastapi = "^0.109.2"
+sqlalchemy = "^2.0.25"
 passlib = "^1.7.4"
-pydantic = "^2.6.1"
+pydantic = "2.6.1"
 pytest = "^7.4.4"
-jose = "^3.3.0"
-dotenv = "^0.19.0"
-starlette = "^0.14.2"
-uvicorn = "^0.15.0"
-bcrypt = "^4.1.2"
+starlette = "^0.36.3"
+uvicorn = "^0.27.0"
+python-dotenv = "^1.0.1"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.7"
+psycopg2-binary = "^2.9.9"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.4"

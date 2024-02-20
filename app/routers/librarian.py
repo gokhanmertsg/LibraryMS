@@ -1,15 +1,13 @@
-from typing import Annotated, List, Optional
-from annotated_types import LowerCase
-from pydantic import BaseModel, Field
+from typing import Annotated, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from fastapi import Body, APIRouter, Depends, HTTPException, Path
-from database.models.models import Book, BookSubject, BookType, Librarian
-from database.database import engine, SessionLocal
-from starlette import status
-from ..routers import auth
-from .auth import get_current_librarian
-from ..utility.utils import BookStatusEnum, BookTypeEnum
-from ..utility.exception import *
+
+from ..services.librarian import LibrarianService
+from ..utility.exception import NotFoundException, InvalidPassword, ForbiddenError
+from database.database import SessionLocal
+from ..routers.auth import get_current_librarian
 
 router: APIRouter = APIRouter(
     prefix='/librarian',
@@ -24,18 +22,11 @@ def get_db():
         db.close()
 
 class BookRequest(BaseModel):
-    """
-    BaseModel for Request Type of Book Object.
     name: str
     writer: str
     type: str
     subject: Optional[str]
-    """
-    name:str
-    writer:str
-    type:str
-    subject:Optional[str]
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -48,70 +39,40 @@ class BookRequest(BaseModel):
             ]
         }
     }
- 
 
 db_dependency = Annotated[Session, Depends(get_db)]
 librarian_dependency = Annotated[dict, Depends(get_current_librarian)]
 
 @router.get('/books')
-async def get_all_books(librarian:librarian_dependency, db:db_dependency):
-    if librarian is None:
-        raise HTTPException(status_code=401,detail="Unauthorized Access.")
-    
-    books = db.query(Book).all()
-    books_with_subjects = books_with_subject(db, books)
-
-    return books_with_subjects
+async def get_all_books(librarian: librarian_dependency, db: db_dependency):
+    try:
+        check_librarian(librarian)
+        librarian_service = LibrarianService(db)
+        books = librarian_service.get_all_books()
+        return books
+    except NotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 @router.post('/book/add')
-async def add_book(librarian:librarian_dependency, db:db_dependency, book:BookRequest) -> dict[str, str]:
-    type = db.query(BookType).filter(BookType.type_name == book.type.lower()).first()
-
-    if not type:
-        book_types = db.query(BookType).all()
-        book_types_names = [book_type.type_name for book_type in book_types]
-        raise HTTPException(status_code=404, detail=f"Book Type not found. Current book types: {book_types_names}")
-
-    new_book = Book(writer=book.writer, name=book.name, type_id= type.type_id, type=type)
-    db.add(new_book)
-    db.commit()
-
-    db.refresh(new_book)
-
-    if(type.type_name == 'school'):
-        subject_book = BookSubject(book_id=new_book.book_id, subject=book.subject)
-        db.add(subject_book)
-        db.commit()
-    return {"message": "Book added successfully"}
-
+async def add_book(librarian: librarian_dependency, db: db_dependency, book: BookRequest):
+    try:
+        check_librarian(librarian)
+        librarian_service = LibrarianService(db)
+        message = librarian_service.add_book(librarian, book.name, book.writer, book.type, book.subject)
+        return {"message": message}
+    except InvalidPassword as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 @router.delete('/book/{book_id}', status_code=status.HTTP_204_NO_CONTENT)
-async def delete_book(librarian:librarian_dependency, db:db_dependency, book_id:int):   
+async def delete_book(book_id: int, librarian: librarian_dependency, db: db_dependency):
+    try:
+        check_librarian(librarian)
+        librarian_service = LibrarianService(db)
+        librarian_service.delete_book(librarian, book_id)
+    except ForbiddenError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+
+def check_librarian(librarian: librarian_dependency) -> bool:
     if librarian is None:
-        raise HTTPException(status_code=401,detail="Unauthorized Access.")
-    book_model: Book = db.query(Book).filter(Book.book_id == book_id).first()
-    if book_model is None:
-        raise HTTPException(status_code=404, detail='Book does not exist.')
-    db.query(Book).filter(Book.book_id==book_id).delete()
-    db.commit()
-
-
-def books_with_subject(db:db_dependency, books) -> List[dict]:
-    books_with_subject: List[dict] = []
-    for book in books:
-        books_with_subject.append(book_subject_append(db,book))
-    return books_with_subject
-
-def book_subject_append(db:db_dependency, book: Book) -> dict:
-    book_dict: dict = {
-            'book_id': book.book_id,
-            'writer': book.writer,
-            'name': book.name,
-            'type_id': book.type_id,
-        }
-
-    if book.type_id == BookTypeEnum.SCHOOL.value:
-        school_book: BookSubject = db.query(BookSubject).filter(BookSubject.book_id == book.book_id).first()
-        if school_book and school_book.subject:
-            book_dict['subject'] = school_book.subject
-    return book_dict        
+        raise ForbiddenError()
+    return True
