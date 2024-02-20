@@ -41,11 +41,12 @@ The Library Management System is a FastAPI-based project that provides CRUD oper
    SECRET_KEY=your_secret_key
    ALGORITHM=HS256   
 4. Running PostgreSQL on Docker
+   Firstly, configure connection information from docker.compose.yml. Then,
    ```bash
    apt install docker.io
    docker-compose up --build
 
-5. Running the application
+6. Running the application
    ```bash
    poetry run uvicorn app.main:app --reload
 
