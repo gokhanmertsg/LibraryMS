@@ -33,6 +33,8 @@ The Library Management System is a FastAPI-based project that provides CRUD oper
 2. Install dependencies using Poetry:
    ```bash
     cd library-management-system
+    python -m venv ./venv
+    source activate venv/bin/activate
     poetry install
 3. Configuration
    - Create a '.env' file in the project root and configure the following variables:
@@ -43,7 +45,7 @@ The Library Management System is a FastAPI-based project that provides CRUD oper
 4. Running PostgreSQL on Docker
    - Firstly, configure connection information from docker.compose.yml. Then,
    ```bash
-   apt install docker.io
+   sudo apt install docker.io
    docker-compose up --build
 
 6. Running the application
